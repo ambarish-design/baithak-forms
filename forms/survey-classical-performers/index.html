@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anonymous Survey for Classical Musicians and Dancers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#7a1f3d;
+    --maroon-dark:#5c1730;
+    --gold:#c9992f;
+    --gold-light:#e7c374;
+    --cream:#fdf7ec;
+    --cream-card:#ffffff;
+    --ink:#33241f;
+    --ink-soft:#7a655e;
+    --border:#ecdfc9;
+    --shadow: 0 20px 50px -20px rgba(90,30,50,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #f4e3c1 0%, transparent 55%),
+      radial-gradient(1000px 500px at 110% 10%, #f1cfd4 0%, transparent 50%),
+      var(--cream);
+    font-family:'Inter', system-ui, sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+  }
+  .card{
+    width:100%;
+    max-width:560px;
+    background:var(--cream-card);
+    border-radius:24px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    overflow:hidden;
+    position:relative;
+  }
+  .card-top{
+    background:linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    padding:28px 32px 22px;
+    color:#fff8ee;
+    position:relative;
+  }
+  .card-top::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;bottom:-1px;
+    height:14px;
+    background:
+      radial-gradient(circle at 50% 0, transparent 8px, var(--maroon-dark) 8.5px) 0 0/24px 100% repeat-x;
+    opacity:.0;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--gold-light);
+    font-weight:600;
+    margin:0 0 8px;
+  }
+  h1{
+    font-family:'Playfair Display', serif;
+    font-size:24px;
+    line-height:1.3;
+    margin:0 0 8px;
+  }
+  .subtitle{
+    font-size:13.5px;
+    line-height:1.6;
+    color:#f1ddd0;
+    margin:0;
+    max-width:46ch;
+  }
+  .progress-wrap{
+    padding:18px 32px 0;
+  }
+  .progress-track{
+    height:6px;
+    background:var(--border);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--gold) 0%, var(--maroon) 130%);
+    border-radius:999px;
+    width:25%;
+    transition:width .35s ease;
+  }
+  .progress-label{
+    display:flex;
+    justify-content:space-between;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:8px;
+    font-weight:500;
+  }
+  .body{
+    padding:26px 32px 32px;
+    min-height:300px;
+    display:flex;
+    flex-direction:column;
+  }
+  .step{
+    display:none;
+    flex-direction:column;
+    gap:14px;
+    animation:fadeIn .35s ease;
+  }
+  .step.active{display:flex;}
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .q-title{
+    font-family:'Playfair Display', serif;
+    font-size:19px;
+    margin:0 0 2px;
+    color:var(--maroon-dark);
+    line-height:1.35;
+  }
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:6px;
+  }
+  .option{
+    position:relative;
+  }
+  .option input{
+    position:absolute;
+    opacity:0;
+    width:100%;
+    height:100%;
+    margin:0;
+    cursor:pointer;
+    inset:0;
+  }
+  .option label{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border:1.5px solid var(--border);
+    border-radius:14px;
+    font-size:14.5px;
+    font-weight:500;
+    color:var(--ink);
+    background:#fffdf9;
+    transition:border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .1s ease;
+    cursor:pointer;
+    user-select:none;
+  }
+  .option .dot{
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    border:2px solid #d8c7ae;
+    flex:0 0 18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:border-color .15s ease;
+  }
+  .option .dot::after{
+    content:"";
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--maroon);
+    transform:scale(0);
+    transition:transform .15s ease;
+  }
+  .option input:checked + label{
+    border-color:var(--maroon);
+    background:linear-gradient(0deg, #fbf0e2, #fbf0e2), #fff;
+    box-shadow:0 6px 16px -8px rgba(122,31,61,.35);
+  }
+  .option input:checked + label .dot{border-color:var(--maroon);}
+  .option input:checked + label .dot::after{transform:scale(1);}
+  .option input:focus-visible + label{outline:2px solid var(--gold); outline-offset:2px;}
+  .option label:hover{border-color:var(--gold);}
+  .self-describe{
+    margin-top:2px;
+    display:none;
+  }
+  .self-describe.show{display:block;}
+  .self-describe input{
+    width:100%;
+    padding:12px 14px;
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    font-size:14px;
+    font-family:inherit;
+    background:#fffdf9;
+  }
+  .self-describe input:focus{
+    outline:none;
+    border-color:var(--maroon);
+  }
+  .nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:auto;
+    padding-top:24px;
+    gap:12px;
+  }
+  button{
+    font-family:inherit;
+    font-size:14px;
+    font-weight:600;
+    border-radius:12px;
+    padding:12px 22px;
+    cursor:pointer;
+    border:none;
+    transition:transform .1s ease, box-shadow .15s ease, opacity .15s ease;
+  }
+  button:active{transform:scale(.97);}
+  .btn-back{
+    background:transparent;
+    color:var(--ink-soft);
+    padding:12px 10px;
+  }
+  .btn-back:hover{color:var(--maroon);}
+  .btn-back:disabled{opacity:0; pointer-events:none;}
+  .btn-next{
+    background:linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    color:#fff;
+    box-shadow:0 10px 24px -10px rgba(122,31,61,.55);
+  }
+  .btn-next:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+    box-shadow:none;
+  }
+  .btn-next:not(:disabled):hover{box-shadow:0 12px 28px -8px rgba(122,31,61,.65);}
+  .success{
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:10px;
+    padding:20px 4px 4px;
+    animation:fadeIn .4s ease;
+  }
+  .success.active{display:flex;}
+  .success .icon{
+    width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(135deg, var(--gold-light), var(--gold));
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;color:#fff;
+    margin-bottom:6px;
+    box-shadow:0 10px 24px -10px rgba(201,153,47,.6);
+  }
+  .success h2{
+    font-family:'Playfair Display', serif;
+    font-size:21px;
+    margin:0;
+    color:var(--maroon-dark);
+  }
+  .success p{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:0;
+    max-width:38ch;
+  }
+  .error-banner{
+    display:none;
+    background:#fdeceb;
+    border:1px solid #f3b9b4;
+    color:#9b2c2c;
+    font-size:12.5px;
+    padding:10px 14px;
+    border-radius:10px;
+    margin-top:6px;
+  }
+  .error-banner.show{display:block;}
+  footer{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:18px;
+    opacity:.85;
+  }
+  .privacy-note{
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+    background:#faf3e6;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin:4px 0 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-top">
+    <p class="eyebrow">Baithak Foundation</p>
+    <h1>Anonymous Survey for Classical Musicians &amp; Dancers</h1>
+    <p class="subtitle">This short, anonymous survey captures demographic data exclusively for statistical purposes. No personally identifiable information is collected.</p>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label"><span id="progressText">Question 1 of 4</span><span id="progressPct">25%</span></div>
+  </div>
+
+  <form class="body" id="surveyForm" novalidate>
+
+    <div class="step active" data-step="1">
+      <p class="q-title">Which classical performing arts discipline do you primarily identify with?</p>
+      <div class="options" id="opts-discipline">
+        <div class="option"><input type="radio" name="discipline" id="d1" value="Classical Vocalist (e.g., Hindustani or Carnatic)"><label for="d1"><span class="dot"></span>Classical Vocalist (e.g., Hindustani or Carnatic)</label></div>
+        <div class="option"><input type="radio" name="discipline" id="d2" value="Classical Instrumental Musician"><label for="d2"><span class="dot"></span>Classical Instrumental Musician</label></div>
+        <div class="option"><input type="radio" name="discipline" id="d3" value="Classical Dancer (e.g., Bharatanatyam, Kathak, Odissi)"><label for="d3"><span class="dot"></span>Classical Dancer (e.g., Bharatanatyam, Kathak, Odissi)</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="2">
+      <p class="q-title">Please select your age range.</p>
+      <div class="options" id="opts-age">
+        <div class="option"><input type="radio" name="ageRange" id="a1" value="Under 18"><label for="a1"><span class="dot"></span>Under 18</label></div>
+        <div class="option"><input type="radio" name="ageRange" id="a2" value="18 - 24"><label for="a2"><span class="dot"></span>18 - 24</label></div>
+        <div class="option"><input type="radio" name="ageRange" id="a3" value="25 - 34"><label for="a3"><span class="dot"></span>25 - 34</label></div>
+        <div class="option"><input type="radio" name="ageRange" id="a4" value="35 - 44"><label for="a4"><span class="dot"></span>35 - 44</label></div>
+        <div class="option"><input type="radio" name="ageRange" id="a5" value="45 - 54"><label for="a5"><span class="dot"></span>45 - 54</label></div>
+        <div class="option"><input type="radio" name="ageRange" id="a6" value="55 - 64"><label for="a6"><span class="dot"></span>55 - 64</label></div>
+        <div class="option"><input type="radio" name="ageRange" id="a7" value="65 and Above"><label for="a7"><span class="dot"></span>65 and Above</label></div>
+      </div>
+    </div>
+
+    <div class="step" data-step="3">
+      <p class="q-title">Which gender identity do you most closely align with?</p>
+      <div class="options" id="opts-gender">
+        <div class="option"><input type="radio" name="gender" id="g1" value="Female"><label for="g1"><span class="dot"></span>Female</label></div>
+        <div class="option"><input type="radio" name="gender" id="g2" value="Male"><label for="g2"><span class="dot"></span>Male</label></div>
+        <div class="option"><input type="radio" name="gender" id="g3" value="Non-binary"><label for="g3"><span class="dot"></span>Non-binary</label></div>
+        <div class="option"><input type="radio" name="gender" id="g4" value="Prefer to self-describe"><label for="g4"><span class="dot"></span>Prefer to self-describe</label></div>
+        <div class="option"><input type="radio" name="gender" id="g5" value="Prefer not to answer"><label for="g5"><span class="dot"></span>Prefer not to answer</label></div>
+      </div>
+      <div class="self-describe" id="selfDescribeWrap">
+        <input type="text" id="genderSelfDescribe" maxlength="80" placeholder="Please self-describe (optional)">
+      </div>
+    </div>
+
+    <div class="step" data-step="4">
+      <p class="q-title">What is your approximate gross annual income in INR from all sources (including performance, teaching, grants, etc.)?</p>
+      <div class="options" id="opts-income">
+        <div class="option"><input type="radio" name="income" id="i1" value="Less than 1 lac"><label for="i1"><span class="dot"></span>Less than 1 lac</label></div>
+        <div class="option"><input type="radio" name="income" id="i2" value="1 lac - 2 lac"><label for="i2"><span class="dot"></span>1 lac - 2 lac</label></div>
+        <div class="option"><input type="radio" name="income" id="i3" value="2 lac - 4 lac"><label for="i3"><span class="dot"></span>2 lac - 4 lac</label></div>
+        <div class="option"><input type="radio" name="income" id="i4" value="4 lac - 6 lac"><label for="i4"><span class="dot"></span>4 lac - 6 lac</label></div>
+        <div class="option"><input type="radio" name="income" id="i5" value="6 lac - 8 lac"><label for="i5"><span class="dot"></span>6 lac - 8 lac</label></div>
+        <div class="option"><input type="radio" name="income" id="i6" value="Above 8 lac"><label for="i6"><span class="dot"></span>Above 8 lac</label></div>
+      </div>
+      <p class="privacy-note">🔒 Your response is recorded anonymously — no name, email, or contact detail is ever collected.</p>
+    </div>
+
+    <div class="error-banner" id="errorBanner">Please select an option to continue.</div>
+
+    <div class="nav">
+      <button type="button" class="btn-back" id="backBtn" disabled>← Back</button>
+      <button type="button" class="btn-next" id="nextBtn">Next →</button>
+    </div>
+  </form>
+
+  <div class="success" id="successPanel">
+    <div class="icon">✓</div>
+    <h2>Thank you!</h2>
+    <p>Your response has been recorded anonymously. We appreciate you taking the time to support this research.</p>
+  </div>
+</div>
+
+<footer>Baithak Foundation · Responses are anonymous and used for statistical purposes only</footer>
+
+<script>
+  // Shared across all Baithak forms — one Apps Script Web App, one Sheet, one tab per form.
+  const SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+  const FORM_ID = "survey-classical-performers";
+
+  const totalSteps = 4;
+  let currentStep = 1;
+
+  const form = document.getElementById('surveyForm');
+  const steps = [...document.querySelectorAll('.step')];
+  const nextBtn = document.getElementById('nextBtn');
+  const backBtn = document.getElementById('backBtn');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const progressPct = document.getElementById('progressPct');
+  const errorBanner = document.getElementById('errorBanner');
+  const successPanel = document.getElementById('successPanel');
+  const genderSelfDescribe = document.getElementById('genderSelfDescribe');
+  const selfDescribeWrap = document.getElementById('selfDescribeWrap');
+
+  function updateProgress(){
+    const pct = Math.round((currentStep / totalSteps) * 100);
+    progressFill.style.width = pct + '%';
+    progressText.textContent = `Question ${currentStep} of ${totalSteps}`;
+    progressPct.textContent = pct + '%';
+  }
+
+  function showStep(n){
+    steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === n));
+    backBtn.disabled = n === 1;
+    nextBtn.textContent = n === totalSteps ? 'Submit →' : 'Next →';
+    errorBanner.classList.remove('show');
+    updateProgress();
+  }
+
+  function currentAnswered(){
+    const step = steps[currentStep - 1];
+    const inputs = step.querySelectorAll('input[type="radio"]');
+    return [...inputs].some(i => i.checked);
+  }
+
+  document.querySelectorAll('input[name="gender"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const isSelfDescribe = document.getElementById('g4').checked;
+      selfDescribeWrap.classList.toggle('show', isSelfDescribe);
+      if (!isSelfDescribe) genderSelfDescribe.value = '';
+    });
+  });
+
+  backBtn.addEventListener('click', () => {
+    if (currentStep > 1){
+      currentStep--;
+      showStep(currentStep);
+    }
+  });
+
+  nextBtn.addEventListener('click', async () => {
+    if (!currentAnswered()){
+      errorBanner.classList.add('show');
+      return;
+    }
+    if (currentStep < totalSteps){
+      currentStep++;
+      showStep(currentStep);
+      return;
+    }
+    await submitSurvey();
+  });
+
+  async function submitSurvey(){
+    nextBtn.disabled = true;
+    nextBtn.textContent = 'Submitting…';
+
+    const data = new FormData(form);
+    const payload = {
+      formId: FORM_ID,
+      fields: {
+        Discipline: data.get('discipline') || '',
+        'Age Range': data.get('ageRange') || '',
+        'Gender Identity': data.get('gender') || '',
+        'Gender (self-described)': genderSelfDescribe.value.trim(),
+        'Annual Income (INR)': data.get('income') || ''
+      }
+    };
+
+    try {
+      if (!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') === 0){
+        throw new Error('missing-script-url');
+      }
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      form.style.display = 'none';
+      document.querySelector('.progress-wrap').style.display = 'none';
+      successPanel.classList.add('active');
+    } catch (err) {
+      nextBtn.disabled = false;
+      nextBtn.textContent = 'Submit →';
+      errorBanner.textContent = 'Something went wrong submitting your response. Please try again.';
+      errorBanner.classList.add('show');
+    }
+  }
+
+  showStep(currentStep);
+</script>
+
+</body>
+</html>
