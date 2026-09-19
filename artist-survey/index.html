@@ -359,7 +359,7 @@
         <div class="option"><input type="radio" name="gender" id="g5" value="Prefer not to answer"><label for="g5"><span class="dot"></span>Prefer not to answer</label></div>
       </div>
       <div class="self-describe" id="selfDescribeWrap">
-        <input type="text" id="genderSelfDescribe" maxlength="80" placeholder="Please self-describe (optional)">
+        <input type="text" id="genderSelfDescribe" maxlength="80" placeholder="Please self-describe">
       </div>
     </div>
 
@@ -431,8 +431,17 @@
   function currentAnswered(){
     const step = steps[currentStep - 1];
     const inputs = step.querySelectorAll('input[type="radio"]');
-    return [...inputs].some(i => i.checked);
+    const isAnswered = [...inputs].some(i => i.checked);
+    if (!isAnswered) return false;
+    if (step.dataset.step === '3' && document.getElementById('g4').checked){
+      return genderSelfDescribe.value.trim().length > 0;
+    }
+    return true;
   }
+
+  genderSelfDescribe.addEventListener('input', () => {
+    if (genderSelfDescribe.value.trim().length > 0) errorBanner.classList.remove('show');
+  });
 
   document.querySelectorAll('input[name="gender"]').forEach(radio => {
     radio.addEventListener('change', () => {
@@ -451,6 +460,11 @@
 
   nextBtn.addEventListener('click', async () => {
     if (!currentAnswered()){
+      const step = steps[currentStep - 1];
+      const needsSelfDescribe = step.dataset.step === '3' && document.getElementById('g4').checked;
+      errorBanner.textContent = needsSelfDescribe
+        ? 'Please tell us how you self-describe to continue.'
+        : 'Please select an option to continue.';
       errorBanner.classList.add('show');
       return;
     }
