@@ -278,6 +278,42 @@
     margin:0;
     max-width:38ch;
   }
+  .income-range{
+    width:100%;
+    margin-top:10px;
+    padding-top:18px;
+    border-top:1px solid var(--border);
+  }
+  .income-range svg{display:block; width:100%; height:auto; overflow:visible;}
+  .ir-axis{stroke:var(--border); stroke-width:2; stroke-linecap:round;}
+  .ir-tick{stroke:var(--ink-soft); stroke-width:2; stroke-linecap:round;}
+  .ir-avg-tick{stroke:var(--maroon); stroke-width:2.5; stroke-linecap:round;}
+  .ir-end-label{
+    font-family:'Inter', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    fill:var(--ink-soft);
+  }
+  .ir-connector{stroke:var(--border); stroke-width:1.5;}
+  .ir-avg-eyebrow{
+    font-family:'Inter', sans-serif;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    fill:var(--ink-soft);
+  }
+  .ir-avg-value{
+    font-family:'Playfair Display', serif;
+    font-size:19px;
+    font-weight:700;
+    fill:var(--maroon-dark);
+  }
+  .income-range-count{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
   .error-banner{
     display:none;
     background:#fdeceb;
@@ -388,6 +424,20 @@
     <div class="icon">✓</div>
     <h2>Thank you!</h2>
     <p>Your response has been recorded anonymously. We appreciate you taking the time to support this research.</p>
+    <div class="income-range" id="incomeStat" hidden>
+      <svg viewBox="0 0 460 130" preserveAspectRatio="xMidYMid meet">
+        <line class="ir-axis" x1="20" y1="88" x2="440" y2="88"></line>
+        <line class="ir-tick" x1="20" y1="80" x2="20" y2="96"></line>
+        <line class="ir-tick" x1="440" y1="80" x2="440" y2="96"></line>
+        <text class="ir-end-label" id="irMinLabel" x="20" y="116" text-anchor="start"></text>
+        <text class="ir-end-label" id="irMaxLabel" x="440" y="116" text-anchor="end"></text>
+        <line class="ir-avg-tick" id="irAvgTick" x1="0" y1="78" x2="0" y2="98"></line>
+        <path class="ir-connector" id="irConnector"></path>
+        <text class="ir-avg-eyebrow" id="irAvgEyebrow" text-anchor="middle">Average reported salary</text>
+        <text class="ir-avg-value" id="irAvgValue" text-anchor="middle"></text>
+      </svg>
+      <p class="income-range-count" id="incomeStatCount"></p>
+    </div>
   </div>
 </div>
 
@@ -505,12 +555,72 @@
       form.style.display = 'none';
       document.querySelector('.progress-wrap').style.display = 'none';
       successPanel.classList.add('active');
+      loadIncomeStat();
     } catch (err) {
       nextBtn.disabled = false;
       nextBtn.textContent = 'Submit →';
       errorBanner.textContent = 'Something went wrong submitting your response. Please try again.';
       errorBanner.classList.add('show');
     }
+  }
+
+  // Apps Script Web Apps can't set CORS headers, so a plain fetch() can't
+  // read the response cross-origin — a <script> tag isn't subject to CORS,
+  // so we ask the backend to wrap its JSON in a callback (JSONP) instead.
+  function loadIncomeStat(){
+    if (!SCRIPT_URL || SCRIPT_URL.indexOf('PASTE_YOUR') === 0) return;
+
+    const callbackName = 'baithakIncomeStat_' + Date.now();
+    const cleanup = () => {
+      delete window[callbackName];
+      script.remove();
+    };
+
+    window[callbackName] = (data) => {
+      cleanup();
+      renderIncomeRange(data);
+    };
+
+    const script = document.createElement('script');
+    script.src = SCRIPT_URL + '?formId=' + encodeURIComponent(FORM_ID) + '&callback=' + callbackName;
+    script.onerror = cleanup;
+    // Apps Script's redirect + cold start can be slow, so this is generous —
+    // it only needs to outlast slow requests; on-time ones clean up on their own.
+    setTimeout(cleanup, 20000);
+    document.body.appendChild(script);
+  }
+
+  // Draws the low–high income scale with a tick marking the average,
+  // scaled between the lowest and highest bracket midpoints actually reported.
+  function renderIncomeRange(data){
+    if (!data || !data.count || data.averageIncomeLac == null || data.minIncomeLac == null || data.maxIncomeLac == null) return;
+
+    var min = data.minIncomeLac, max = data.maxIncomeLac, avg = data.averageIncomeLac;
+    var x1 = 20, x2 = 440;
+    var avgX = (max > min) ? x1 + ((avg - min) / (max - min)) * (x2 - x1) : (x1 + x2) / 2;
+    var labelX = Math.max(50, Math.min(410, avgX));
+
+    document.getElementById('irMinLabel').textContent = '₹' + min + ' lac';
+    document.getElementById('irMaxLabel').textContent = '₹' + max + ' lac';
+
+    var tick = document.getElementById('irAvgTick');
+    tick.setAttribute('x1', avgX);
+    tick.setAttribute('x2', avgX);
+
+    var eyebrow = document.getElementById('irAvgEyebrow');
+    eyebrow.setAttribute('x', labelX);
+    eyebrow.setAttribute('y', 28);
+
+    var value = document.getElementById('irAvgValue');
+    value.setAttribute('x', labelX);
+    value.setAttribute('y', 50);
+    value.textContent = '₹' + avg + ' lac / year';
+
+    document.getElementById('irConnector').setAttribute('d', 'M ' + labelX + ' 58 L ' + avgX + ' 78');
+
+    document.getElementById('incomeStatCount').textContent =
+      'Based on ' + data.count + (data.count === 1 ? ' response' : ' responses') + ' so far';
+    document.getElementById('incomeStat').hidden = false;
   }
 
   showStep(currentStep);
